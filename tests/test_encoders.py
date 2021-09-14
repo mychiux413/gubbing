@@ -1,30 +1,43 @@
-from gubbing.models.networks.encoders import ImageEncoder, AudioEncoder
+from gubbing.models.networks.encoders import ImageEncoder, AudioEncoder, ReferenceEncoder
 import tensorflow as tf
-from tensorflow.keras import backend
+from gubbing.utils import is_channels_last
 
-channels_last = backend.image_data_format() == "channels_last"
 
 def test_image_encoder():
-    enc = ImageEncoder("input")
-    if channels_last:
+    enc = ImageEncoder()
+    if is_channels_last:
         imgs = tf.random.normal((2, 256, 256, 3))
     else:
         imgs = tf.random.normal((2, 3, 256, 256))
     features = enc(imgs)
-    if channels_last:
+    if is_channels_last:
+        assert features[-1].shape == (2, 1, 1, 512)
+    else:
+        assert features[-1].shape == (2, 512, 1, 1)
+
+
+def test_reference_encoder():
+    ref = ReferenceEncoder()
+    if is_channels_last:
+        imgs = tf.random.normal((2, 256, 256, 3))
+    else:
+        imgs = tf.random.normal((2, 3, 256, 256))
+    features = ref(imgs)
+    if is_channels_last:
         assert features.shape == (2, 1, 1, 512)
     else:
         assert features.shape == (2, 512, 1, 1)
 
+
 def test_audio_encoder():
     enc = AudioEncoder()
-    if channels_last:
+    if is_channels_last:
         audio = tf.random.normal((2, 24, 64))
     else:
         audio = tf.random.normal((2, 64, 24))
     features = enc(audio)
 
-    if channels_last:
-        assert features.shape == (2, 1, 512)
+    if is_channels_last:
+        assert features.shape == (2, 1, 1, 512)
     else:
-        assert features.shape == (2, 512, 1)
+        assert features.shape == (2, 512, 1, 1)

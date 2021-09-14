@@ -70,22 +70,46 @@ class AudioEncoder(Model):
         x = self.res1(x)
         x = self.res2(x)
         x = self.global_pool(x)
+        x = tf.expand_dims(x, axis=1)
         return x
 
 
 class ImageEncoder(Model):
-    def __init__(self, name: str):
+    def __init__(self):
         super().__init__()
         self.res_blocks = [
-            ResNetV2Block(16, downsampled=False, name=f"{name}_res1"),
-            ResNetV2Block(32, name=f"{name}_res2"),
-            ResNetV2Block(64, name=f"{name}_res3"),
-            ResNetV2Block(128, name=f"{name}_res4"),
-            ResNetV2Block(256, name=f"{name}_res5"),
-            ResNetV2Block(512, name=f"{name}_res6"),
-            ResNetV2Block(512, name=f"{name}_res7"),
-            ResNetV2Block(512, name=f"{name}_res8"),
-            ResNetV2Block(512, name=f"{name}_res9"),
+            ResNetV2Block(16, downsampled=False),
+            ResNetV2Block(32),
+            ResNetV2Block(64),
+            ResNetV2Block(128),
+            ResNetV2Block(256),
+            ResNetV2Block(512),
+            ResNetV2Block(512),
+            ResNetV2Block(512),
+            ResNetV2Block(512),
+        ]
+
+    def call(self, x):
+        outputs = [x]
+        for block in self.res_blocks:
+            x = block(x)
+            outputs.append(x)
+        return outputs
+
+
+class ReferenceEncoder(Model):
+    def __init__(self):
+        super().__init__()
+        self.res_blocks = [
+            ResNetV2Block(16, downsampled=False),
+            ResNetV2Block(32),
+            ResNetV2Block(64),
+            ResNetV2Block(128),
+            ResNetV2Block(256),
+            ResNetV2Block(512),
+            ResNetV2Block(512),
+            ResNetV2Block(512),
+            ResNetV2Block(512),
         ]
 
     def call(self, x):
